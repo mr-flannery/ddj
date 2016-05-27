@@ -7,6 +7,7 @@ from tornado import gen, httpclient
 import os
 import Queue
 import json
+import re
 
 queue = Queue.PriorityQueue()
 
@@ -16,8 +17,18 @@ class RequestHandler(tornado.web.RequestHandler):
 
 	def post(self):
 		data = json.loads(self.request.body)
-		self.write("You have sent: {}".format(data['url'].encode('utf-8')))
+		
+		if self.isValidYoutubeUrl(data['url']):
+			self.write("Thanks for yor request!")
+		else:
+			self.write("Not a valid YouTube URL")
+		
 		self.finish()
+
+	def isValidYoutubeUrl(self, url):
+		ytRegex = re.compile("https?://www.youtube.com/watch\?v=[a-zA-Z0-9-_]{11}")
+		print(ytRegex.match(url))
+		return ytRegex.match(url)
 
 class AdminHandler(tornado.web.RequestHandler):
 	def get(self):
