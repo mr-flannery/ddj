@@ -3,13 +3,13 @@ import tornado.ioloop
 import tornado.web
 from tornado.web import URLSpec as URL
 from tornado import gen, httpclient
+from request_queue import request_queue
 
 import os
-import Queue
 import json
 import re
 
-queue = Queue.PriorityQueue()
+requestQueue = request_queue.RequestQueue()
 
 class RequestHandler(tornado.web.RequestHandler):
 	def get(self):
@@ -17,22 +17,46 @@ class RequestHandler(tornado.web.RequestHandler):
 
 	def post(self):
 		data = json.loads(self.request.body)
-		
+
 		if self.isValidYoutubeUrl(data['url']):
 			self.write("Thanks for yor request!")
+			requestQueue.addSongToQueue(data['url'], self.request.remote_ip)
 		else:
-			self.write("Not a valid YouTube URL")
-		
+			self.write("Not a valid YouTube URL")		
+
+		requestQueue.printQueue()
+
 		self.finish()
 
 	def isValidYoutubeUrl(self, url):
-		ytRegex = re.compile("https?://www.youtube.com/watch\?v=[a-zA-Z0-9-_]{11}")
-		print(ytRegex.match(url))
-		return ytRegex.match(url)
+		ytRegexLong = re.compile("https?://www.youtube.com/watch\?v=[a-zA-Z0-9-_]{11}")
+		ytRegexShort = re.compile("https?://youtu.be/[a-zA-Z0-9-_]{11}")
+
+		if ytRegexLong.match(url) is None and ytRegexShort.match(url) is None:
+			return False
+		else:
+			return True
+
+class PlayHandler(tornado.web.RequestHandler):
+	def get(self):
+		self.render("templates/play.html")
 
 class AdminHandler(tornado.web.RequestHandler):
 	def get(self):
 		self.render("templates/admin.html")
+
+class UrlHandler(tornado.web.RequestHandler):
+	def get(self):
+		returnDict = requestQueue.dequeueUrl()
+		
+		if returnDict is None:
+			self.write({
+				'url' : '',
+			})
+		else:
+			self.write(returnDict)
+
+		self.finish()
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -42,6 +66,8 @@ def make_app():
 	return tornado.web.Application([
 		URL(r"/", RequestHandler, name = "request"),
 		URL(r"/admin", AdminHandler, name = "admin"),
+		URL(r"/play", PlayHandler, name="play"),
+		URL(r"/url", UrlHandler),
 	], debug = True, **settings)
 
 if __name__ == "__main__":
