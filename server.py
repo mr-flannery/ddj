@@ -20,7 +20,7 @@ class RequestHandler(tornado.web.RequestHandler):
 
 		if self.isValidYoutubeUrl(data['url']):
 			self.write("Thanks for yor request!")
-			requestQueue.addSongToQueue(data['url'], self.request.remote_ip)
+			requestQueue.addSongToQueue(self.getVideoIdFromUrl(data['url']), self.request.remote_ip)
 		else:
 			self.write("Not a valid YouTube URL")		
 
@@ -37,6 +37,10 @@ class RequestHandler(tornado.web.RequestHandler):
 		else:
 			return True
 
+	def getVideoIdFromUrl(self, url):
+		videoIdRegex = re.compile("[a-zA-Z0-9-_]{11}")
+		return videoIdRegex.findall(url)[0]
+
 class PlayHandler(tornado.web.RequestHandler):
 	def get(self):
 		self.render("templates/play.html")
@@ -51,7 +55,7 @@ class UrlHandler(tornado.web.RequestHandler):
 		
 		if returnDict is None:
 			self.write({
-				'url' : '',
+				'videoId' : '',
 			})
 		else:
 			self.write(returnDict)

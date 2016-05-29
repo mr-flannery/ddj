@@ -3,10 +3,10 @@ import Queue
 class RequestQueue:
 	queue = Queue.PriorityQueue()
 
-	def addSongToQueue(self, url, ip):
+	def addSongToQueue(self, videoId, ip):
 		queueElemDict = {
 			'ip' : ip,
-			'url' : url,
+			'videoID' : videoId,
 		}
 
 		queueElemTuple = (self.__getPriorityForIp(ip), queueElemDict)
