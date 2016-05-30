@@ -49,7 +49,7 @@ class AdminHandler(tornado.web.RequestHandler):
 	def get(self):
 		self.render("templates/admin.html")
 
-class UrlHandler(tornado.web.RequestHandler):
+class VideoIdHandler(tornado.web.RequestHandler):
 	def get(self):
 		returnDict = requestQueue.dequeueUrl()
 		
@@ -71,7 +71,7 @@ def make_app():
 		URL(r"/", RequestHandler, name = "request"),
 		URL(r"/admin", AdminHandler, name = "admin"),
 		URL(r"/play", PlayHandler, name="play"),
-		URL(r"/url", UrlHandler),
+		URL(r"/videoids", VideoIdHandler),
 	], debug = True, **settings)
 
 if __name__ == "__main__":

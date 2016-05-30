@@ -6,7 +6,7 @@ class RequestQueue:
 	def addSongToQueue(self, videoId, ip):
 		queueElemDict = {
 			'ip' : ip,
-			'videoID' : videoId,
+			'videoId' : videoId,
 		}
 
 		queueElemTuple = (self.__getPriorityForIp(ip), queueElemDict)
