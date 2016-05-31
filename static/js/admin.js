@@ -1,4 +1,5 @@
 var websocket;
+var paused;
 
 function openWS() {
 	websocket = new WebSocket("ws://localhost:8088/adminwebsocket");
@@ -18,5 +19,17 @@ $(document).ready( function() {
 
     $('#skipButton').click( function() {
         websocket.send("skip");
+    });
+
+	$('#pauseButton').click( function() {
+        if (paused) {
+			websocket.send("unpause");
+			paused = !paused;
+			$('#pauseButton').html("pause");
+		} else {
+			websocket.send("pause");
+			paused = !paused;
+			$('#pauseButton').html("unpause");
+		}
     });
 });

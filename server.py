@@ -18,10 +18,23 @@ class WebSocketMessageHandler():
         self.playWebSocketHandler = None
 
     def setAdminWebSocketHandler(self, adminWebSocketHandler):
-        self.adminWebSocketHandler = adminWebSocketHandler
+        if not self.adminWebSocketHandler:
+            self.adminWebSocketHandler = adminWebSocketHandler
 
     def setPlayWebSocketHandler(self, playWebSocketHandler):
-        self.playWebSocketHandler = playWebSocketHandler
+        if not self.playWebSocketHandler:
+            self.playWebSocketHandler = playWebSocketHandler
+
+    def sendMessageToPlayClient(self, message):
+        if self.playWebSocketHandler:
+            self.playWebSocketHandler.send_message(message)
+        else:
+            print("There's no playClient connected.")
+
+    def removePlayWebSocketHandler(self, playWebSocketHandler):
+        if id(self.playWebSocketHandler) == id(playWebSocketHandler):
+            self.playWebSocketHandler = None
+
 
 requestQueue = request_queue.RequestQueue()
 webSocketMessageHandler = WebSocketMessageHandler()
@@ -90,7 +103,8 @@ class AdminWebSocketHandler(tornado.websocket.WebSocketHandler):
         print('socket opened')
 
     def on_message(self, message):
-        print(message)
+        webSocketMessageHandler.sendMessageToPlayClient(message)
+
 
     def on_close(self):
         print('socket closed')
@@ -104,9 +118,12 @@ class PlayWebSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         print('socket closed')
+        webSocketMessageHandler.removePlayWebSocketHandler(self);
+
+    def send_message(self, message):
+        self.write_message(message)
 
     def __init__(self, *args, **kwargs):
-        print("init succeded")
         super(PlayWebSocketHandler, self).__init__(*args, **kwargs)
         webSocketMessageHandler.setPlayWebSocketHandler(self)
 
@@ -127,5 +144,8 @@ def make_app():
 
 if __name__ == "__main__":
     app = make_app()
-    app.listen(8088)
+    port = 8088
+    app.listen(port)
+    print("Server is running on port {}".format(port))
     tornado.ioloop.IOLoop.current().start()
+
